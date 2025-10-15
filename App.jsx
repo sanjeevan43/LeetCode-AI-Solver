@@ -4,7 +4,7 @@ import { Button } from './components/ui/button';
 import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Badge } from './components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+
 import { api } from './lib/api';
 
 export default function LeetCodeHelper() {
@@ -104,18 +104,17 @@ export default function LeetCodeHelper() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Programming Language</label>
-                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map(lang => (
-                        <SelectItem key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <select 
+                    value={selectedLanguage} 
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {languages.map(lang => (
+                      <option key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <Textarea
                   value={problem}
