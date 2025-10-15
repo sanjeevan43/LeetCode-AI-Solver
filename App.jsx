@@ -4,6 +4,7 @@ import { Button } from './components/ui/button';
 import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Badge } from './components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { api } from './lib/api';
 
 export default function LeetCodeHelper() {
@@ -11,7 +12,7 @@ export default function LeetCodeHelper() {
   const [solution, setSolution] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
-  const [selectedLanguages, setSelectedLanguages] = useState(['python', 'javascript', 'java', 'cpp']);
+  const [selectedLanguage, setSelectedLanguage] = useState('python');
   const [apiStatus, setApiStatus] = useState('checking');
 
   const languages = [
@@ -66,7 +67,7 @@ export default function LeetCodeHelper() {
     setSolution('🤖 Analyzing your problem and generating solutions...');
 
     try {
-      const result = await api.solveProblem(problem, selectedLanguages);
+      const result = await api.solveProblem(problem, [selectedLanguage]);
       setSolution(result);
     } catch (error) {
       setSolution(`❌ Error: ${error.message}\n\nPlease try again or check your internet connection.`);
@@ -102,25 +103,19 @@ export default function LeetCodeHelper() {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Programming Languages</label>
-                  <div className="flex flex-wrap gap-2">
-                    {languages.map(lang => (
-                      <Button
-                        key={lang.value}
-                        variant={selectedLanguages.includes(lang.value) ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => {
-                          setSelectedLanguages(prev => 
-                            prev.includes(lang.value) 
-                              ? prev.filter(l => l !== lang.value)
-                              : [...prev, lang.value]
-                          );
-                        }}
-                      >
-                        {lang.label}
-                      </Button>
-                    ))}
-                  </div>
+                  <label className="text-sm font-medium mb-2 block">Programming Language</label>
+                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map(lang => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Textarea
                   value={problem}
@@ -130,7 +125,7 @@ export default function LeetCodeHelper() {
                 />
                 <Button
                   onClick={handleGetSolution}
-                  disabled={loading || !problem.trim() || selectedLanguages.length === 0}
+                  disabled={loading || !problem.trim()}
                   className="w-full"
                 >
                   {loading ? (
@@ -141,7 +136,7 @@ export default function LeetCodeHelper() {
                   ) : (
                     <>
                       <Send className="w-4 h-4 mr-2" />
-                      Get Solution ({selectedLanguages.length} languages)
+                      Get Solution
                     </>
                   )}
                 </Button>
@@ -183,7 +178,7 @@ export default function LeetCodeHelper() {
                       }
                       
                       return sections
-                        .filter(section => section.type !== 'code' || selectedLanguages.includes(section.title))
+                        .filter(section => section.type !== 'code' || section.title === selectedLanguage)
                         .map((section, index) => (
                         <div key={index} className="space-y-2">
                           {section.title && (
