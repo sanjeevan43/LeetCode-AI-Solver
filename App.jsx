@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Send, Loader, Code, BookOpen, Lightbulb, Copy, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, Loader, Code, BookOpen, Lightbulb, Copy, Check, Wifi, WifiOff } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
@@ -12,6 +12,7 @@ export default function LeetCodeHelper() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [selectedLanguages, setSelectedLanguages] = useState(['python', 'javascript', 'java', 'cpp']);
+  const [apiStatus, setApiStatus] = useState('checking');
 
   const languages = [
     { value: 'python', label: 'Python' },
@@ -48,6 +49,16 @@ export default function LeetCodeHelper() {
     return 'bg-gray-100 text-gray-800';
   };
 
+  useEffect(() => {
+    checkApiStatus();
+  }, []);
+
+  const checkApiStatus = async () => {
+    setApiStatus('checking');
+    const isOnline = await api.checkStatus();
+    setApiStatus(isOnline ? 'online' : 'offline');
+  };
+
   const handleGetSolution = async () => {
     if (!problem.trim()) return;
 
@@ -68,7 +79,18 @@ export default function LeetCodeHelper() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">LeetCode Helper</h1>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <h1 className="text-4xl font-bold">LeetCode Helper</h1>
+            <div className="flex items-center gap-1">
+              {apiStatus === 'online' ? (
+                <><Wifi className="w-5 h-5 text-green-500" /><span className="text-sm text-green-600">Online</span></>
+              ) : apiStatus === 'offline' ? (
+                <><WifiOff className="w-5 h-5 text-red-500" /><span className="text-sm text-red-600">Offline</span></>
+              ) : (
+                <><Loader className="w-5 h-5 animate-spin" /><span className="text-sm">Checking...</span></>
+              )}
+            </div>
+          </div>
           <p className="text-muted-foreground">Get AI-powered solutions for LeetCode problems</p>
         </div>
 
@@ -160,7 +182,9 @@ export default function LeetCodeHelper() {
                         sections.push(currentSection);
                       }
                       
-                      return sections.map((section, index) => (
+                      return sections
+                        .filter(section => section.type !== 'code' || selectedLanguages.includes(section.title))
+                        .map((section, index) => (
                         <div key={index} className="space-y-2">
                           {section.title && (
                             <div className="flex items-center gap-2 mb-2">
