@@ -54,9 +54,10 @@ export default function LeetCodeHelper() {
     setSolution('🤖 Analyzing your problem and generating solutions...');
     try {
       const result = await api.solveProblem(problem, [selectedLanguage]);
-      setSolution(result);
+      setSolution(result || 'No solution generated. Please try again.');
     } catch (error) {
-      setSolution(`❌ Error: ${error.message}\n\nPlease try again or check your internet connection.`);
+      console.error('Solution error:', error);
+      setSolution(`❌ Error: ${error.message}\n\nPlease try again or check your internet connection.\n\nTip: Make sure your problem description includes LeetCode keywords like 'array', 'target', 'return', etc.`);
     } finally {
       setLoading(false);
     }
