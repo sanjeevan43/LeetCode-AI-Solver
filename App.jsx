@@ -219,6 +219,64 @@ Given an array of integers nums and an integer target, return indices of the two
 
               <Button
                 onClick={handleGetSolution}
+                disabled={loading || !problem.trim() || apiStatus === 'offline'}
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin mr-2" />
+                    Generating Solution...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Generate Solution
+                  </>
+                )}
+              </Button>
+
+              {apiStatus === 'offline' && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-red-800 text-sm font-medium">
+                    ⚠️ API is currently offline. Please check your internet connection and try again.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Solution Section */}
+          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Terminal className="w-4 h-4 text-white" />
+                </div>
+                Generated Solution
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderSolution()}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+                <Textarea
+                  value={problem}
+                  onChange={(e) => setProblem(e.target.value)}
+                  placeholder="Paste your LeetCode problem description here...
+
+Example:
+Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target."
+                  className="min-h-[200px] border-2 hover:border-blue-300 transition-colors resize-none font-mono text-sm leading-relaxed"
+                />
+              </div>
+
+              <Button
+                onClick={handleGetSolution}
                 disabled={loading || !problem.trim()}
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
