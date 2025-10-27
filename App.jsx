@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Send, Loader, Code2, Brain, Copy, Check, Wifi, WifiOff, Terminal, Sparkles, Play, Zap } from 'lucide-react';
+import { Loader, Code2, Brain, Copy, Check, Wifi, WifiOff, Terminal, Sparkles, Zap } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
-import { Badge } from './components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { api } from './lib/api';
 
@@ -51,7 +50,7 @@ export default function LeetCodeHelper() {
       setSolution(result || 'No solution generated. Please try again.');
     } catch (error) {
       console.error('Solution error:', error);
-      setSolution(`❌ Error: ${error.message}\n\nPlease try again or check your internet connection.\n\nTip: Make sure your problem description includes LeetCode keywords like 'array', 'target', 'return', etc.`);
+      setSolution(`❌ Error: ${error.message}\n\nTroubleshooting tips:\n• Check your internet connection\n• Ensure the problem description is clear\n• Try refreshing if the issue persists`);
     } finally {
       setLoading(false);
     }
@@ -198,14 +197,14 @@ export default function LeetCodeHelper() {
 
 Example:
 Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target."
-                  className="h-80 font-mono text-sm resize-none border-2 focus:border-blue-500 transition-all duration-200 rounded-xl"
+                  className="min-h-[200px] border-2 hover:border-blue-300 transition-colors resize-none font-mono text-sm leading-relaxed"
                 />
               </div>
-              
+
               <Button
                 onClick={handleGetSolution}
                 disabled={loading || !problem.trim()}
-                className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -214,28 +213,34 @@ Given an array of integers nums and an integer target, return indices of the two
                   </>
                 ) : (
                   <>
-                    <Play className="w-5 h-5 mr-2" />
-                    Get LeetCode Solution
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Generate Solution
                   </>
                 )}
               </Button>
+
+              {apiStatus === 'offline' && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-red-800 text-sm font-medium">
+                    ⚠️ API is currently offline. Please check your internet connection and try again.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Output Section */}
+          {/* Solution Section */}
           <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                  <Brain className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Terminal className="w-4 h-4 text-white" />
                 </div>
-                LeetCode Solution
+                Generated Solution
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                {renderSolution()}
-              </div>
+              {renderSolution()}
             </CardContent>
           </Card>
         </div>
