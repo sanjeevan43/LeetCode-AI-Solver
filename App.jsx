@@ -37,8 +37,14 @@ export default function LeetCodeHelper() {
 
   const checkApiStatus = async () => {
     setApiStatus('checking');
-    const isOnline = await api.checkStatus();
-    setApiStatus(isOnline ? 'online' : 'offline');
+    try {
+      const isOnline = await api.checkStatus();
+      console.log('API Status Check:', isOnline);
+      setApiStatus(isOnline ? 'online' : 'offline');
+    } catch (error) {
+      console.error('API Status Check Error:', error);
+      setApiStatus('offline');
+    }
   };
 
   const handleGetSolution = async () => {
@@ -129,26 +135,36 @@ export default function LeetCodeHelper() {
                 <p className="text-sm text-gray-600">Clean code ready for LeetCode</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-gray-200">
-              {apiStatus === 'online' ? (
-                <>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <Wifi className="w-4 h-4 text-green-500" />
-                  <span className="text-sm font-medium text-green-600">Online</span>
-                </>
-              ) : apiStatus === 'offline' ? (
-                <>
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <WifiOff className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-medium text-red-600">Offline</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <Loader className="w-4 h-4 animate-spin text-blue-500" />
-                  <span className="text-sm font-medium text-blue-600">Connecting...</span>
-                </>
-              )}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-gray-200">
+                {apiStatus === 'online' ? (
+                  <>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <Wifi className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium text-green-600">Online</span>
+                  </>
+                ) : apiStatus === 'offline' ? (
+                  <>
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <WifiOff className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-medium text-red-600">Offline</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <Loader className="w-4 h-4 animate-spin text-blue-500" />
+                    <span className="text-sm font-medium text-blue-600">Connecting...</span>
+                  </>
+                )}
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={checkApiStatus}
+                className="h-8 w-8 p-0"
+              >
+                <Loader className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
