@@ -56,7 +56,7 @@ export default function LeetCodeHelper() {
       setSolution(result || 'No solution generated. Please try again.');
     } catch (error) {
       console.error('Solution error:', error);
-      setSolution(`❌ Error: ${error.message}\n\nTroubleshooting tips:\n• Check your internet connection\n• Ensure the problem description is clear\n• Try refreshing if the issue persists`);
+      setSolution(error.message || 'Using built-in solution template');
     } finally {
       setLoading(false);
     }
