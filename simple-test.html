@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LeetCode AI Solver - Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚀 LeetCode AI Solver</h1>
+    
+    <label>Problem Description:</label>
+    <textarea id="problem" placeholder="Enter your LeetCode problem here...">two sum</textarea>
+    
+    <button onclick="generateSolution()">Generate Solution</button>
+    
+    <h3>Generated Solution:</h3>
+    <pre id="solution">Click "Generate Solution" to see the code...</pre>
+
+    <script>
+        function generateSolution() {
+            const problem = document.getElementById('problem').value.toLowerCase();
+            const solutionDiv = document.getElementById('solution');
+            
+            let solution = '';
+            
+            if (problem.includes('two sum')) {
+                solution = `class Solution:
+    def twoSum(self, nums, target):
+        num_map = {}
+        for i, num in enumerate(nums):
+            complement = target - num
+            if complement in num_map:
+                return [num_map[complement], i]
+            num_map[num] = i
+        return []`;
+            } else if (problem.includes('valid parentheses')) {
+                solution = `class Solution:
+    def isValid(self, s):
+        stack = []
+        mapping = {')': '(', '}': '{', ']': '['}
+        for char in s:
+            if char in mapping:
+                if not stack or stack.pop() != mapping[char]:
+                    return False
+            else:
+                stack.append(char)
+        return not stack`;
+            } else if (problem.includes('palindrome')) {
+                solution = `class Solution:
+    def isPalindrome(self, s):
+        left, right = 0, len(s) - 1
+        while left < right:
+            while left < right and not s[left].isalnum():
+                left += 1
+            while left < right and not s[right].isalnum():
+                right -= 1
+            if s[left].lower() != s[right].lower():
+                return False
+            left += 1
+            right -= 1
+        return True`;
+            } else {
+                solution = `class Solution:
+    def solve(self):
+        # Solution template for: ${problem.substring(0, 50)}
+        # TODO: Implement your solution here
+        pass`;
+            }
+            
+            solutionDiv.textContent = solution;
+        }
+    </script>
+</body>
+</html>

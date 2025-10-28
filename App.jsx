@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Loader, Code2, Brain, Copy, Check, Wifi, WifiOff, Terminal, Sparkles, Zap } from 'lucide-react';
+import { Loader, Code2, Brain, Copy, Check, Wifi, WifiOff, Terminal, Sparkles, Zap, RefreshCw, Lightbulb } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Badge } from './components/ui/badge';
+import { Alert, AlertDescription } from './components/ui/alert';
 import { api } from './lib/api';
 
 export default function LeetCodeHelper() {
@@ -49,11 +51,12 @@ export default function LeetCodeHelper() {
     if (!problem.trim()) return;
     setLoading(true);
     setSolution('🤖 Generating LeetCode solution...');
+    
     try {
-      const result = await api.solveProblem(problem, [selectedLanguage]);
-      setSolution(result || 'No solution generated. Please try again.');
+      const solution = await api.solveProblem(problem, selectedLanguage);
+      setSolution(solution);
     } catch (error) {
-      console.error('Error:', error);
+      setSolution('Error generating solution. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -62,37 +65,45 @@ export default function LeetCodeHelper() {
   const renderSolution = () => {
     if (!solution) return (
       <div className="flex flex-col items-center justify-center h-full py-16">
-        <div className="relative">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-lg animate-pulse">
+        <div className="relative mb-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
             <Brain className="w-10 h-10 text-white" />
           </div>
-          <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-bounce"></div>
+          <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
         </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-3">Ready to Solve!</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-3">Ready to Generate!</h3>
         <p className="text-center text-gray-600 text-sm max-w-md leading-relaxed">
-          Paste your LeetCode problem above and get clean code ready to copy-paste into LeetCode
+          Enter your LeetCode problem description and select your preferred programming language to get an optimized solution.
         </p>
+      </div>
+    );
+
+    if (loading) return (
+      <div className="flex flex-col items-center justify-center h-full py-16">
+        <Loader className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">Generating Solution...</h3>
+        <p className="text-gray-500 text-sm">Our AI is analyzing your problem</p>
       </div>
     );
 
     return (
       <div className="space-y-4">
-        <div className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden shadow-xl">
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
+        <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl">
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
             <div className="flex items-center gap-3">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               </div>
-              <span className="text-sm text-gray-300 font-mono font-medium">
-                {languages.find(l => l.value === selectedLanguage)?.label || selectedLanguage} - Ready for LeetCode
-              </span>
+              <Badge variant="secondary" className="bg-slate-700 text-slate-200 hover:bg-slate-600">
+                {languages.find(l => l.value === selectedLanguage)?.label || selectedLanguage}
+              </Badge>
             </div>
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
+              className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700 transition-all duration-200"
               onClick={() => copyToClipboard(solution, 0)}
             >
               {copiedIndex === 0 ? (
@@ -102,15 +113,16 @@ export default function LeetCodeHelper() {
               )}
             </Button>
           </div>
-          <pre className="p-4 text-sm text-gray-100 font-mono overflow-x-auto leading-relaxed bg-gray-900">
+          <pre className="p-6 text-sm text-slate-100 font-mono overflow-x-auto leading-relaxed bg-slate-900">
             {solution}
           </pre>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <p className="text-blue-800 text-sm font-medium">
-            💡 Copy the code above and paste it directly into the LeetCode editor
-          </p>
-        </div>
+        <Alert className="bg-blue-50 border-blue-200">
+          <Lightbulb className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            Solution ready! Copy the code above and paste it directly into the LeetCode editor.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   };
@@ -121,8 +133,8 @@ export default function LeetCodeHelper() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Code2 className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden">
+                <img src="/logo.png" alt="LeetCode AI Solver" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -131,35 +143,40 @@ export default function LeetCodeHelper() {
                 <p className="text-sm text-gray-600">Clean code ready for LeetCode</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3">
+              <Badge 
+                variant={apiStatus === 'online' ? 'default' : apiStatus === 'offline' ? 'destructive' : 'secondary'}
+                className={`px-3 py-1 ${apiStatus === 'online' ? 'bg-green-100 text-green-700 border-green-200' : 
+                  apiStatus === 'offline' ? 'bg-red-100 text-red-700 border-red-200' : 
+                  'bg-blue-100 text-blue-700 border-blue-200'}`}
+              >
                 {apiStatus === 'online' ? (
                   <>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <Wifi className="w-4 h-4 text-green-500" />
-                    <span className="text-sm font-medium text-green-600">Online</span>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                    <Wifi className="w-3 h-3 mr-1" />
+                    Online
                   </>
                 ) : apiStatus === 'offline' ? (
                   <>
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <WifiOff className="w-4 h-4 text-red-500" />
-                    <span className="text-sm font-medium text-red-600">Offline</span>
+                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                    <WifiOff className="w-3 h-3 mr-1" />
+                    Offline
                   </>
                 ) : (
                   <>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <Loader className="w-4 h-4 animate-spin text-blue-500" />
-                    <span className="text-sm font-medium text-blue-600">Connecting...</span>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2"></div>
+                    <Loader className="w-3 h-3 animate-spin mr-1" />
+                    Connecting
                   </>
                 )}
-              </div>
+              </Badge>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={checkApiStatus}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
               >
-                <Loader className="w-4 h-4" />
+                <RefreshCw className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -203,22 +220,19 @@ export default function LeetCodeHelper() {
                 <Textarea
                   value={problem}
                   onChange={(e) => setProblem(e.target.value)}
-                  placeholder="Paste your LeetCode problem description here...
-
-Example:
-Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target."
-                  className="min-h-[200px] border-2 hover:border-blue-300 transition-colors resize-none font-mono text-sm leading-relaxed"
+                  placeholder="Paste your LeetCode problem description here..."
+                  className="min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none"
                 />
               </div>
-
+              
               <Button
                 onClick={handleGetSolution}
-                disabled={loading || !problem.trim()}
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!problem.trim() || loading}
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
               >
                 {loading ? (
                   <>
-                    <Loader className="w-5 h-5 animate-spin mr-2" />
+                    <Loader className="w-5 h-5 mr-2 animate-spin" />
                     Generating Solution...
                   </>
                 ) : (
@@ -228,21 +242,13 @@ Given an array of integers nums and an integer target, return indices of the two
                   </>
                 )}
               </Button>
-
-              {apiStatus === 'offline' && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                  <p className="text-yellow-800 text-sm font-medium">
-                    ⚠️ API offline - Using built-in solutions for common problems
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
           <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
                   <Terminal className="w-4 h-4 text-white" />
                 </div>
                 Generated Solution
