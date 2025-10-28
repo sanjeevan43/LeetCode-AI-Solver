@@ -213,7 +213,7 @@ Given an array of integers nums and an integer target, return indices of the two
 
               <Button
                 onClick={handleGetSolution}
-                disabled={loading || !problem.trim() || apiStatus === 'offline'}
+                disabled={loading || !problem.trim()}
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
@@ -230,9 +230,9 @@ Given an array of integers nums and an integer target, return indices of the two
               </Button>
 
               {apiStatus === 'offline' && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-red-800 text-sm font-medium">
-                    ⚠️ API is currently offline. Please check your internet connection and try again.
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <p className="text-yellow-800 text-sm font-medium">
+                    ⚠️ API offline - Using built-in solutions for common problems
                   </p>
                 </div>
               )}
