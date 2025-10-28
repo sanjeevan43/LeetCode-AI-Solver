@@ -53,7 +53,7 @@ export default function LeetCodeHelper() {
       const result = await api.solveProblem(problem, [selectedLanguage]);
       setSolution(result || 'No solution generated. Please try again.');
     } catch (error) {
-      setSolution(error.message || 'Error generating solution');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
