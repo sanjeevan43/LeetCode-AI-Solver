@@ -110,8 +110,8 @@ export default function LeetCodeHelper() {
     if (!solution) return (
       <div className="flex flex-col items-center justify-center h-full py-16">
         <div className="relative mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Brain className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-gray-100">
+            <img src="./logo.png" alt="LeetCode AI Solver" className="w-16 h-16 object-contain rounded-xl" />
           </div>
           <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
         </div>
@@ -278,7 +278,7 @@ export default function LeetCodeHelper() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden">
-                <img src="/logo.png" alt="LeetCode AI Solver" className="w-full h-full object-cover" />
+                <img src="./logo.png" alt="LeetCode AI Solver" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
