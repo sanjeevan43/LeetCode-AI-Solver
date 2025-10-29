@@ -49,6 +49,13 @@ export default function LeetCodeHelper() {
 
   const handleGetSolution = async () => {
     if (!problem.trim()) return;
+    
+    // Validate problem description length
+    if (problem.trim().length < 20) {
+      setSolution('Error: Please provide a more detailed problem description (at least 20 characters).\n\nInclude the problem statement, constraints, and examples for better results.');
+      return;
+    }
+    
     setLoading(true);
     setSolution('🤖 Generating LeetCode solution...');
     
@@ -56,7 +63,8 @@ export default function LeetCodeHelper() {
       const solution = await api.solveProblem(problem, selectedLanguage);
       setSolution(solution);
     } catch (error) {
-      setSolution('Error generating solution. Please try again.');
+      console.error('API Error:', error);
+      setSolution(`Error: ${error.message}\n\nPlease check your problem description and try again.`);
     } finally {
       setLoading(false);
     }
@@ -367,14 +375,14 @@ export default function LeetCodeHelper() {
                       <Textarea
                         value={problem}
                         onChange={(e) => setProblem(e.target.value)}
-                        placeholder="Paste your LeetCode problem description here..."
+                        placeholder="Paste your complete LeetCode problem description here...\n\nInclude:\n- Problem statement\n- Input/Output examples\n- Constraints\n- Any additional details"
                         className="min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none"
                       />
                     </div>
                     
                     <Button
                       onClick={handleGetSolution}
-                      disabled={!problem.trim() || loading}
+                      disabled={!problem.trim() || problem.trim().length < 20 || loading}
                       className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
                     >
                       {loading ? (
