@@ -50,11 +50,7 @@ export default function LeetCodeHelper() {
   const handleGetSolution = async () => {
     if (!problem.trim()) return;
     
-    // Validate problem description length
-    if (problem.trim().length < 20) {
-      setSolution('Error: Please provide a more detailed problem description (at least 20 characters).\n\nInclude the problem statement, constraints, and examples for better results.');
-      return;
-    }
+
     
     setLoading(true);
     setSolution('🤖 Generating LeetCode solution...');
@@ -335,12 +331,12 @@ export default function LeetCodeHelper() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 py-4 md:px-4 md:py-8">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="flex flex-col lg:grid lg:grid-cols-5 gap-4 md:gap-8">
               {/* Input Panel */}
               <div className="lg:col-span-2">
-                <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 sticky top-24">
+                <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 lg:sticky lg:top-24">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-3 text-xl">
                       <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -349,18 +345,18 @@ export default function LeetCodeHelper() {
                       Problem Input
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-3">
+                  <CardContent className="space-y-4 md:space-y-6">
+                    <div className="space-y-2 md:space-y-3">
                       <label className="text-sm font-semibold text-gray-700">
                         Programming Language
                       </label>
                       <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                        <SelectTrigger className="h-12 border-2 hover:border-blue-300 transition-colors">
+                        <SelectTrigger className="h-10 md:h-12 border-2 hover:border-blue-300 transition-colors">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {languages.map(lang => (
-                            <SelectItem key={lang.value} value={lang.value} className="py-3">
+                            <SelectItem key={lang.value} value={lang.value} className="py-2 md:py-3">
                               {lang.label}
                             </SelectItem>
                           ))}
@@ -368,31 +364,31 @@ export default function LeetCodeHelper() {
                       </Select>
                     </div>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       <label className="text-sm font-semibold text-gray-700">
                         LeetCode Problem Description
                       </label>
                       <Textarea
                         value={problem}
                         onChange={(e) => setProblem(e.target.value)}
-                        placeholder="Paste your complete LeetCode problem description here...\n\nInclude:\n- Problem statement\n- Input/Output examples\n- Constraints\n- Any additional details"
-                        className="min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none"
+                        placeholder="Paste your LeetCode problem here...\n\nExample: Two Sum problem"
+                        className="min-h-[120px] md:min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none text-sm"
                       />
                     </div>
                     
                     <Button
                       onClick={handleGetSolution}
-                      disabled={!problem.trim() || problem.trim().length < 20 || loading}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                      disabled={!problem.trim() || loading}
+                      className="w-full h-10 md:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-sm md:text-base"
                     >
                       {loading ? (
                         <>
-                          <Loader className="w-5 h-5 mr-2 animate-spin" />
-                          Generating Solution...
+                          <Loader className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />
+                          Generating...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-5 h-5 mr-2" />
+                          <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                           Generate Solution
                         </>
                       )}
@@ -402,13 +398,13 @@ export default function LeetCodeHelper() {
               </div>
 
               {/* Solution Panel */}
-              <div className="lg:col-span-3">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
-                      <Terminal className="w-4 h-4 text-white" />
+              <div className="lg:col-span-3 mt-4 lg:mt-0">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex items-center gap-2 md:gap-3 mb-4">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <Terminal className="w-3 h-3 md:w-4 md:h-4 text-white" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Generated Solution</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-gray-900">Generated Solution</h2>
                   </div>
                   {renderSolution()}
                 </div>
