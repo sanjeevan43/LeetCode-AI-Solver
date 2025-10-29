@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './components/ui/badge';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { api } from './lib/api';
+import CommandOutputPage from './CommandOutputPage';
 
 export default function LeetCodeHelper() {
   const [problem, setProblem] = useState('');
@@ -15,6 +16,7 @@ export default function LeetCodeHelper() {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('python');
   const [apiStatus, setApiStatus] = useState('checking');
+  const [showCommandOutput, setShowCommandOutput] = useState(false);
 
   const languages = [
     { value: 'python', label: '🐍 Python' },
@@ -62,6 +64,50 @@ export default function LeetCodeHelper() {
     }
   };
 
+  const formatSolution = (solutionText) => {
+    const sections = solutionText.split(/## /g).filter(Boolean);
+    return sections.map((section, index) => {
+      const lines = section.split('\n');
+      const title = lines[0];
+      const content = lines.slice(1).join('\n').trim();
+      
+      if (title.includes('💻 Solution')) {
+        const codeMatch = content.match(/```\w+\n([\s\S]*?)```/);
+        const code = codeMatch ? codeMatch[1] : content;
+        return {
+          type: 'code',
+          title: '💻 Solution',
+          content: code
+        };
+      } else if (title.includes('⏱️ Complexity')) {
+        return {
+          type: 'complexity',
+          title: '⏱️ Complexity Analysis',
+          content: content
+        };
+      } else if (title.includes('📝 Explanation')) {
+        return {
+          type: 'explanation',
+          title: '📝 Explanation',
+          content: content
+        };
+      } else if (title.includes('🚀 Key Optimizations')) {
+        return {
+          type: 'optimizations',
+          title: '🚀 Key Optimizations',
+          content: content
+        };
+      } else if (title.includes('🔍 Edge Cases')) {
+        return {
+          type: 'edge-cases',
+          title: '🔍 Edge Cases Handled',
+          content: content
+        };
+      }
+      return null;
+    }).filter(Boolean);
+  };
+
   const renderSolution = () => {
     if (!solution) return (
       <div className="flex flex-col items-center justify-center h-full py-16">
@@ -86,6 +132,106 @@ export default function LeetCodeHelper() {
       </div>
     );
 
+    // Check if solution is structured (contains ##)
+    if (solution.includes('##')) {
+      const sections = formatSolution(solution);
+      return (
+        <div className="space-y-6">
+          {sections.map((section, index) => {
+            if (section.type === 'code') {
+              return (
+                <div key={index} className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl">
+                  <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
+                      <Badge variant="secondary" className="bg-slate-700 text-slate-200 hover:bg-slate-600">
+                        {languages.find(l => l.value === selectedLanguage)?.label || selectedLanguage}
+                      </Badge>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700 transition-all duration-200"
+                      onClick={() => copyToClipboard(section.content, index)}
+                    >
+                      {copiedIndex === index ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <pre className="p-6 text-sm text-slate-100 font-mono overflow-x-auto leading-relaxed bg-slate-900">
+                    {section.content}
+                  </pre>
+                </div>
+              );
+            } else if (section.type === 'complexity') {
+              const timeMatch = section.content.match(/\*\*Time Complexity:\*\* (.+)/)
+              const spaceMatch = section.content.match(/\*\*Space Complexity:\*\* (.+)/)
+              return (
+                <Card key={index} className="border-green-200 bg-green-50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {section.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {timeMatch && (
+                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                        Time: {timeMatch[1]}
+                      </Badge>
+                    )}
+                    {spaceMatch && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        Space: {spaceMatch[1]}
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            } else {
+              return (
+                <Card key={index} className="border-slate-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {section.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none">
+                      {section.content.split('\n').map((line, i) => {
+                        if (line.startsWith('- ')) {
+                          return (
+                            <div key={i} className="flex items-start gap-2 mb-2">
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <span className="text-slate-700">{line.substring(2)}</span>
+                            </div>
+                          );
+                        }
+                        return line && <p key={i} className="text-slate-700 mb-2">{line}</p>;
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            }
+          })}
+          <Alert className="bg-blue-50 border-blue-200">
+            <Lightbulb className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Solution ready! Copy the code above and paste it directly into the LeetCode editor.
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+
+    // Fallback for unstructured solution
     return (
       <div className="space-y-4">
         <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl">
@@ -178,88 +324,104 @@ export default function LeetCodeHelper() {
               >
                 <RefreshCw className="w-4 h-4" />
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowCommandOutput(!showCommandOutput)}
+                className="px-3 hover:bg-gray-100"
+              >
+                {showCommandOutput ? 'Main App' : 'Command Output'}
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 max-w-7xl mx-auto">
-          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-white" />
-                </div>
-                Problem Input
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-700">
-                  Programming Language
-                </label>
-                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                  <SelectTrigger className="h-12 border-2 hover:border-blue-300 transition-colors">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map(lang => (
-                      <SelectItem key={lang.value} value={lang.value} className="py-3">
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {showCommandOutput ? (
+        <CommandOutputPage />
+      ) : (
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Input Panel */}
+              <div className="lg:col-span-2">
+                <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 sticky top-24">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <Zap className="w-4 h-4 text-white" />
+                      </div>
+                      Problem Input
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700">
+                        Programming Language
+                      </label>
+                      <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                        <SelectTrigger className="h-12 border-2 hover:border-blue-300 transition-colors">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {languages.map(lang => (
+                            <SelectItem key={lang.value} value={lang.value} className="py-3">
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700">
+                        LeetCode Problem Description
+                      </label>
+                      <Textarea
+                        value={problem}
+                        onChange={(e) => setProblem(e.target.value)}
+                        placeholder="Paste your LeetCode problem description here..."
+                        className="min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none"
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={handleGetSolution}
+                      disabled={!problem.trim() || loading}
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader className="w-5 h-5 mr-2 animate-spin" />
+                          Generating Solution...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2" />
+                          Generate Solution
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
-              
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-700">
-                  LeetCode Problem Description
-                </label>
-                <Textarea
-                  value={problem}
-                  onChange={(e) => setProblem(e.target.value)}
-                  placeholder="Paste your LeetCode problem description here..."
-                  className="min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none"
-                />
-              </div>
-              
-              <Button
-                onClick={handleGetSolution}
-                disabled={!problem.trim() || loading}
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-              >
-                {loading ? (
-                  <>
-                    <Loader className="w-5 h-5 mr-2 animate-spin" />
-                    Generating Solution...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Generate Solution
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
 
-          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
-                  <Terminal className="w-4 h-4 text-white" />
+              {/* Solution Panel */}
+              <div className="lg:col-span-3">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <Terminal className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Generated Solution</h2>
+                  </div>
+                  {renderSolution()}
                 </div>
-                Generated Solution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {renderSolution()}
-            </CardContent>
-          </Card>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
