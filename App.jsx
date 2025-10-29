@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader, Code2, Brain, Copy, Check, Wifi, WifiOff, Terminal, Sparkles, Zap, RefreshCw, Lightbulb } from 'lucide-react';
+import { Loader, Copy, Check, Terminal, Sparkles, Zap, Lightbulb, BookOpen, Brain, Clock, Play, Search, RefreshCw } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Textarea } from './components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
@@ -10,21 +10,38 @@ import { api } from './lib/api';
 
 export default function LeetCodeHelper() {
   const [problem, setProblem] = useState('');
-  const [solution, setSolution] = useState('');
+  const [solutionData, setSolutionData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('python');
-  const [apiStatus, setApiStatus] = useState('checking');
+  const [languageSearch, setLanguageSearch] = useState('');
+
 
   const languages = [
     { value: 'python', label: '🐍 Python' },
     { value: 'javascript', label: '🟨 JavaScript' },
     { value: 'java', label: '☕ Java' },
     { value: 'cpp', label: '⚡ C++' },
+    { value: 'c', label: '🔧 C' },
     { value: 'csharp', label: '🔷 C#' },
     { value: 'go', label: '🐹 Go' },
     { value: 'rust', label: '🦀 Rust' },
-    { value: 'typescript', label: '🔷 TypeScript' }
+    { value: 'kotlin', label: '🎯 Kotlin' },
+    { value: 'swift', label: '🍎 Swift' },
+    { value: 'php', label: '🐘 PHP' },
+    { value: 'ruby', label: '💎 Ruby' },
+    { value: 'scala', label: '🎭 Scala' },
+    { value: 'typescript', label: '🔷 TypeScript' },
+    { value: 'dart', label: '🎯 Dart' },
+    { value: 'r', label: '📊 R' },
+    { value: 'matlab', label: '🧮 MATLAB' },
+    { value: 'perl', label: '🐪 Perl' },
+    { value: 'lua', label: '🌙 Lua' },
+    { value: 'haskell', label: '🎓 Haskell' },
+    { value: 'clojure', label: '🔄 Clojure' },
+    { value: 'elixir', label: '💧 Elixir' },
+    { value: 'fsharp', label: '🔷 F#' },
+    { value: 'vb', label: '📘 Visual Basic' }
   ];
 
   const copyToClipboard = async (text, index) => {
@@ -33,85 +50,32 @@ export default function LeetCodeHelper() {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  useEffect(() => {
-    checkApiStatus();
-  }, []);
 
-  const checkApiStatus = async () => {
-    setApiStatus('checking');
-    try {
-      const isOnline = await api.checkStatus();
-      setApiStatus(isOnline ? 'online' : 'offline');
-    } catch (error) {
-      setApiStatus('offline');
-    }
-  };
 
   const handleGetSolution = async () => {
     if (!problem.trim()) return;
     
-
-    
     setLoading(true);
-    setSolution('🤖 Generating LeetCode solution...');
+    setSolutionData(null);
     
     try {
-      const solution = await api.solveProblem(problem, selectedLanguage);
-      setSolution(solution);
+      // Convert problem name to a more detailed description for the API
+      const problemDescription = `Solve the LeetCode problem: ${problem.trim()}`;
+      const data = await api.solveProblem(problemDescription, selectedLanguage);
+      console.log('API Response:', data);
+      setSolutionData(data);
     } catch (error) {
       console.error('API Error:', error);
-      setSolution(`Error: ${error.message}\n\nPlease check your problem description and try again.`);
+      setSolutionData({ error: error.message });
     } finally {
       setLoading(false);
     }
   };
 
-  const formatSolution = (solutionText) => {
-    const sections = solutionText.split(/## /g).filter(Boolean);
-    return sections.map((section, index) => {
-      const lines = section.split('\n');
-      const title = lines[0];
-      const content = lines.slice(1).join('\n').trim();
-      
-      if (title.includes('💻 Solution')) {
-        const codeMatch = content.match(/```\w+\n([\s\S]*?)```/);
-        const code = codeMatch ? codeMatch[1] : content;
-        return {
-          type: 'code',
-          title: '💻 Solution',
-          content: code
-        };
-      } else if (title.includes('⏱️ Complexity')) {
-        return {
-          type: 'complexity',
-          title: '⏱️ Complexity Analysis',
-          content: content
-        };
-      } else if (title.includes('📝 Explanation')) {
-        return {
-          type: 'explanation',
-          title: '📝 Explanation',
-          content: content
-        };
-      } else if (title.includes('🚀 Key Optimizations')) {
-        return {
-          type: 'optimizations',
-          title: '🚀 Key Optimizations',
-          content: content
-        };
-      } else if (title.includes('🔍 Edge Cases')) {
-        return {
-          type: 'edge-cases',
-          title: '🔍 Edge Cases Handled',
-          content: content
-        };
-      }
-      return null;
-    }).filter(Boolean);
-  };
+
 
   const renderSolution = () => {
-    if (!solution) return (
+    if (!solutionData) return (
       <div className="flex flex-col items-center justify-center h-full py-16">
         <div className="relative mb-6">
           <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-gray-100">
@@ -134,143 +98,383 @@ export default function LeetCodeHelper() {
       </div>
     );
 
-    // Check if solution is structured (contains ##)
-    if (solution.includes('##')) {
-      const sections = formatSolution(solution);
+    if (solutionData?.error) {
+      const isServiceUnavailable = solutionData.error.includes('AI service unavailable') || solutionData.error.includes('503');
       return (
-        <div className="space-y-6">
-          {sections.map((section, index) => {
-            if (section.type === 'code') {
-              return (
-                <div key={index} className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl">
-                  <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
-                    <div className="flex items-center gap-3">
-                      <div className="flex gap-1.5">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      </div>
-                      <Badge variant="secondary" className="bg-slate-700 text-slate-200 hover:bg-slate-600">
-                        {languages.find(l => l.value === selectedLanguage)?.label || selectedLanguage}
-                      </Badge>
-                    </div>
+        <Alert className="bg-red-50 border-red-200">
+          <AlertDescription className="text-red-800">
+            <div className="space-y-2">
+              <p><strong>Error:</strong> {solutionData.error}</p>
+              {isServiceUnavailable && (
+                <div className="text-sm">
+                  <p>The AI service is temporarily unavailable. This usually means:</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>The backend AI service is starting up (cold start)</li>
+                    <li>High traffic causing temporary overload</li>
+                    <li>Backend maintenance in progress</li>
+                  </ul>
+                  <div className="mt-3 flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700 transition-all duration-200"
-                      onClick={() => copyToClipboard(section.content, index)}
+                      variant="outline"
+                      onClick={handleGetSolution}
+                      disabled={loading}
+                      className="text-xs"
                     >
-                      {copiedIndex === index ? (
-                        <Check className="w-4 h-4 text-green-400" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Retry
                     </Button>
+                    <span className="text-xs text-gray-600">Try again in a few moments</span>
                   </div>
-                  <pre className="p-6 text-sm text-slate-100 font-mono overflow-x-auto leading-relaxed bg-slate-900">
-                    {section.content}
-                  </pre>
                 </div>
-              );
-            } else if (section.type === 'complexity') {
-              const timeMatch = section.content.match(/\*\*Time Complexity:\*\* (.+)/)
-              const spaceMatch = section.content.match(/\*\*Space Complexity:\*\* (.+)/)
-              return (
-                <Card key={index} className="border-green-200 bg-green-50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {section.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {timeMatch && (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                        Time: {timeMatch[1]}
-                      </Badge>
-                    )}
-                    {spaceMatch && (
-                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                        Space: {spaceMatch[1]}
-                      </Badge>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            } else {
-              return (
-                <Card key={index} className="border-slate-200">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {section.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none">
-                      {section.content.split('\n').map((line, i) => {
-                        if (line.startsWith('- ')) {
-                          return (
-                            <div key={i} className="flex items-start gap-2 mb-2">
-                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <span className="text-slate-700">{line.substring(2)}</span>
-                            </div>
-                          );
-                        }
-                        return line && <p key={i} className="text-slate-700 mb-2">{line}</p>;
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            }
-          })}
-          <Alert className="bg-blue-50 border-blue-200">
-            <Lightbulb className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              Solution ready! Copy the code above and paste it directly into the LeetCode editor.
-            </AlertDescription>
-          </Alert>
-        </div>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
       );
     }
 
-    // Fallback for unstructured solution
-    return (
-      <div className="space-y-4">
-        <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl">
-          <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-              <Badge variant="secondary" className="bg-slate-700 text-slate-200 hover:bg-slate-600">
-                {languages.find(l => l.value === selectedLanguage)?.label || selectedLanguage}
-              </Badge>
-            </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700 transition-all duration-200"
-              onClick={() => copyToClipboard(solution, 0)}
-            >
-              {copiedIndex === 0 ? (
-                <Check className="w-4 h-4 text-green-400" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-          <pre className="p-6 text-sm text-slate-100 font-mono overflow-x-auto leading-relaxed bg-slate-900">
-            {solution}
-          </pre>
-        </div>
-        <Alert className="bg-blue-50 border-blue-200">
-          <Lightbulb className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            Solution ready! Copy the code above and paste it directly into the LeetCode editor.
+    if (!solutionData?.solution) {
+      console.log('Solution data:', solutionData);
+      return (
+        <Alert className="bg-yellow-50 border-yellow-200">
+          <AlertDescription className="text-yellow-800">
+            No solution data received. Please try again.
           </AlertDescription>
         </Alert>
+      );
+    }
+
+    return (
+      <div className="space-y-8">
+        {/* Solution Code */}
+        <Card className="overflow-hidden shadow-2xl border-0">
+          <CardHeader className="bg-gradient-to-r from-slate-800 to-slate-900 text-white pb-4">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
+                  <Terminal className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-lg font-semibold">Solution Code</span>
+                <Badge variant="secondary" className="bg-slate-700 text-slate-200">
+                  {languages.find(l => l.value === selectedLanguage)?.label || selectedLanguage}
+                </Badge>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
+                onClick={() => {
+                  // Extract only the function code, removing docstrings, comments, and test cases
+                  const lines = solutionData?.solution?.split('\n') || [];
+                  const codeLines = [];
+                  let inFunction = false;
+                  let inDocstring = false;
+                  let braceCount = 0;
+                  
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    
+                    // Skip empty lines at start
+                    if (!inFunction && !trimmed) continue;
+                    
+                    // Start of function
+                    if (trimmed.startsWith('def ') || trimmed.startsWith('class ') || 
+                        trimmed.includes('function') || trimmed.includes('{')) {
+                      inFunction = true;
+                    }
+                    
+                    // Skip docstrings
+                    if (trimmed.startsWith('"""') || trimmed.startsWith("'''")) {
+                      inDocstring = !inDocstring;
+                      continue;
+                    }
+                    if (inDocstring) continue;
+                    
+                    // Skip comments and test cases
+                    if (trimmed.startsWith('#') || trimmed.startsWith('//') || 
+                        trimmed.startsWith('nums = ') || trimmed.startsWith('target = ') ||
+                        trimmed.startsWith('result = ') || trimmed.startsWith('print(')) {
+                      continue;
+                    }
+                    
+                    // Skip explanation sections
+                    if (trimmed.startsWith('**') || trimmed.startsWith('*Time') || 
+                        trimmed.startsWith('*Space') || trimmed.includes('Explanation:')) {
+                      break;
+                    }
+                    
+                    if (inFunction && trimmed) {
+                      codeLines.push(line);
+                    }
+                  }
+                  
+                  const cleanCode = codeLines.join('\n').trim();
+                  copyToClipboard(cleanCode, 0);
+                }}
+              >
+                {copiedIndex === 0 ? (
+                  <Check className="w-4 h-4 text-green-400" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <pre className="p-6 text-sm text-slate-100 font-mono overflow-x-auto leading-relaxed bg-slate-900 min-h-[200px]">
+              {(() => {
+                // Display only the clean function code
+                const lines = solutionData?.solution?.split('\n') || [];
+                const codeLines = [];
+                let inFunction = false;
+                let inDocstring = false;
+                
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  
+                  if (!inFunction && !trimmed) continue;
+                  
+                  if (trimmed.startsWith('def ') || trimmed.startsWith('class ') || 
+                      trimmed.includes('function') || trimmed.includes('{')) {
+                    inFunction = true;
+                  }
+                  
+                  if (trimmed.startsWith('"""') || trimmed.startsWith("'''")) {
+                    inDocstring = !inDocstring;
+                    continue;
+                  }
+                  if (inDocstring) continue;
+                  
+                  if (trimmed.startsWith('#') || trimmed.startsWith('//') || 
+                      trimmed.startsWith('nums = ') || trimmed.startsWith('target = ') ||
+                      trimmed.startsWith('result = ') || trimmed.startsWith('print(')) {
+                    continue;
+                  }
+                  
+                  if (trimmed.startsWith('**') || trimmed.startsWith('*Time') || 
+                      trimmed.startsWith('*Space') || trimmed.includes('Explanation:')) {
+                    break;
+                  }
+                  
+                  if (inFunction && trimmed) {
+                    codeLines.push(line);
+                  }
+                }
+                
+                return codeLines.join('\n').trim();
+              })()}
+            </pre>
+          </CardContent>
+        </Card>
+
+        {/* Approach */}
+        {solutionData?.approach && (
+          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-blue-800">Solution Approach</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-slate-700 text-base leading-relaxed">
+                {(() => {
+                  // Extract approach from the full solution text
+                  const fullText = solutionData?.solution || '';
+                  const lines = fullText.split('\n');
+                  const approachLines = [];
+                  let inExplanation = false;
+                  
+                  for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.includes('Explanation:') || line.includes('Algorithm:') || line.includes('Approach:')) {
+                      inExplanation = true;
+                      continue;
+                    }
+                    if (inExplanation && line.startsWith('1.') && line.includes('function')) {
+                      // Found the main explanation section
+                      for (let j = i; j < Math.min(i + 3, lines.length); j++) {
+                        const explanationLine = lines[j].trim();
+                        if (explanationLine && !explanationLine.startsWith('2.') && !explanationLine.startsWith('3.')) {
+                          approachLines.push(explanationLine.replace(/^\d+\.\s*/, ''));
+                        }
+                      }
+                      break;
+                    }
+                  }
+                  
+                  return approachLines.length > 0 ? approachLines.join(' ') : 
+                    'Use a hash map to store numbers and their indices for O(1) lookup time, enabling single-pass solution.';
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Algorithm Steps */}
+        {solutionData?.algorithm && (
+          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-purple-800">Step-by-Step Algorithm</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {(() => {
+                  // Extract algorithm steps from the full solution text
+                  const fullText = solutionData?.solution || '';
+                  const lines = fullText.split('\n');
+                  const steps = [];
+                  
+                  for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.match(/^\d+\./)) {
+                      // Found a numbered step
+                      const stepText = line.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '');
+                      if (stepText.length > 10 && !stepText.includes('function')) {
+                        steps.push(stepText);
+                      }
+                    }
+                  }
+                  
+                  // Fallback steps if none found
+                  if (steps.length === 0) {
+                    steps.push(
+                      'Initialize an empty hash map to store numbers and indices',
+                      'Iterate through the array with index and value',
+                      'Calculate the complement needed to reach target',
+                      'Check if complement exists in hash map',
+                      'Return indices if found, otherwise store current number'
+                    );
+                  }
+                  
+                  return steps.map((step, i) => (
+                    <div key={i} className="flex items-start gap-4 p-3 bg-white rounded-lg border border-purple-200">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        {i + 1}
+                      </div>
+                      <span className="text-slate-700 text-base leading-relaxed">{step}</span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Complexity */}
+        {solutionData?.complexity && (
+          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-green-800">Performance Analysis</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-white p-4 rounded-lg border border-green-200">
+                <div className="text-slate-700 text-base leading-relaxed font-medium">
+                  {(() => {
+                    // Extract complexity from the full solution text
+                    const fullText = solutionData?.solution || '';
+                    const lines = fullText.split('\n');
+                    let timeComplexity = '';
+                    let spaceComplexity = '';
+                    
+                    for (const line of lines) {
+                      if (line.includes('Time Complexity:') || line.includes('Time:')) {
+                        timeComplexity = line.replace(/.*Time.*?:/i, '').trim().replace(/[\*\-]/g, '').trim();
+                      }
+                      if (line.includes('Space Complexity:') || line.includes('Space:')) {
+                        spaceComplexity = line.replace(/.*Space.*?:/i, '').trim().replace(/[\*\-]/g, '').trim();
+                      }
+                    }
+                    
+                    if (!timeComplexity && !spaceComplexity) {
+                      return 'Time Complexity: O(n) - Single pass through array. Space Complexity: O(n) - Hash map storage.';
+                    }
+                    
+                    return (
+                      <div className="space-y-2">
+                        {timeComplexity && <div><strong>Time:</strong> {timeComplexity}</div>}
+                        {spaceComplexity && <div><strong>Space:</strong> {spaceComplexity}</div>}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Example Walkthrough */}
+        {solutionData?.example && (
+          <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+                  <Play className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-orange-800">Example Walkthrough</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-slate-900 rounded-lg p-6 border border-orange-200">
+                <pre className="text-sm text-green-400 whitespace-pre-wrap font-mono leading-relaxed">
+                  {(() => {
+                    // Extract example from the full solution text
+                    const fullText = solutionData?.solution || '';
+                    const lines = fullText.split('\n');
+                    const exampleLines = [];
+                    let inExample = false;
+                    
+                    for (const line of lines) {
+                      if (line.includes('nums = [') || line.includes('target = ') || line.includes('result = ')) {
+                        inExample = true;
+                        exampleLines.push(line);
+                      } else if (inExample && line.includes('print(')) {
+                        exampleLines.push(line);
+                      } else if (inExample && line.trim() === '') {
+                        continue;
+                      } else if (inExample && !line.trim().startsWith('nums') && !line.trim().startsWith('target') && !line.trim().startsWith('result') && !line.trim().startsWith('print')) {
+                        break;
+                      }
+                    }
+                    
+                    if (exampleLines.length === 0) {
+                      return 'Input: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: nums[0] + nums[1] = 2 + 7 = 9';
+                    }
+                    
+                    return exampleLines.join('\n');
+                  })()}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Lightbulb className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-1">🎉 Solution Ready!</h3>
+                <p className="text-blue-100">Copy the code above and paste it directly into the LeetCode editor to submit your solution.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   };
@@ -291,42 +495,7 @@ export default function LeetCodeHelper() {
                 <p className="text-sm text-gray-600">Clean code ready for LeetCode</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge 
-                variant={apiStatus === 'online' ? 'default' : apiStatus === 'offline' ? 'destructive' : 'secondary'}
-                className={`px-3 py-1 ${apiStatus === 'online' ? 'bg-green-100 text-green-700 border-green-200' : 
-                  apiStatus === 'offline' ? 'bg-red-100 text-red-700 border-red-200' : 
-                  'bg-blue-100 text-blue-700 border-blue-200'}`}
-              >
-                {apiStatus === 'online' ? (
-                  <>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                    <Wifi className="w-3 h-3 mr-1" />
-                    Online
-                  </>
-                ) : apiStatus === 'offline' ? (
-                  <>
-                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                    <WifiOff className="w-3 h-3 mr-1" />
-                    Offline
-                  </>
-                ) : (
-                  <>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2"></div>
-                    <Loader className="w-3 h-3 animate-spin mr-1" />
-                    Connecting
-                  </>
-                )}
-              </Badge>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={checkApiStatus}
-                className="h-8 w-8 p-0 hover:bg-gray-100"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-            </div>
+
           </div>
         </div>
       </div>
@@ -350,12 +519,24 @@ export default function LeetCodeHelper() {
                       <label className="text-sm font-semibold text-gray-700">
                         Programming Language
                       </label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                          type="text"
+                          placeholder="Search languages..."
+                          value={languageSearch}
+                          onChange={(e) => setLanguageSearch(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                        />
+                      </div>
                       <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                         <SelectTrigger className="h-10 md:h-12 border-2 hover:border-blue-300 transition-colors">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {languages.map(lang => (
+                          {languages
+                            .filter(lang => lang.label.toLowerCase().includes(languageSearch.toLowerCase()))
+                            .map(lang => (
                             <SelectItem key={lang.value} value={lang.value} className="py-2 md:py-3">
                               {lang.label}
                             </SelectItem>
@@ -366,19 +547,23 @@ export default function LeetCodeHelper() {
                     
                     <div className="space-y-2 md:space-y-3">
                       <label className="text-sm font-semibold text-gray-700">
-                        LeetCode Problem Description
+                        Problem Name
                       </label>
-                      <Textarea
+                      <input
+                        type="text"
                         value={problem}
                         onChange={(e) => setProblem(e.target.value)}
-                        placeholder="Paste your LeetCode problem here...\n\nExample: Two Sum problem"
-                        className="min-h-[120px] md:min-h-[200px] border-2 hover:border-blue-300 focus:border-blue-500 transition-colors resize-none text-sm"
+                        placeholder="Enter problem name (e.g., Two Sum, Valid Parentheses, Merge Two Sorted Lists)"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 focus:border-blue-500 focus:outline-none text-sm"
                       />
+                      {problem.trim().length > 0 && problem.trim().length < 3 && (
+                        <p className="text-xs text-red-600">Problem name must be at least 3 characters long</p>
+                      )}
                     </div>
                     
                     <Button
                       onClick={handleGetSolution}
-                      disabled={!problem.trim() || loading}
+                      disabled={!problem.trim() || problem.trim().length < 3 || loading}
                       className="w-full h-10 md:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-sm md:text-base"
                     >
                       {loading ? (
