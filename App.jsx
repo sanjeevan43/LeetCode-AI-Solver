@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './components/ui/badge';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { api } from './lib/api';
-import CommandOutputPage from './CommandOutputPage';
 
 export default function LeetCodeHelper() {
   const [problem, setProblem] = useState('');
@@ -16,7 +15,6 @@ export default function LeetCodeHelper() {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('python');
   const [apiStatus, setApiStatus] = useState('checking');
-  const [showCommandOutput, setShowCommandOutput] = useState(false);
 
   const languages = [
     { value: 'python', label: '🐍 Python' },
@@ -324,23 +322,12 @@ export default function LeetCodeHelper() {
               >
                 <RefreshCw className="w-4 h-4" />
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowCommandOutput(!showCommandOutput)}
-                className="px-3 hover:bg-gray-100"
-              >
-                {showCommandOutput ? 'Main App' : 'Command Output'}
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {showCommandOutput ? (
-        <CommandOutputPage />
-      ) : (
-        <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Input Panel */}
@@ -421,7 +408,6 @@ export default function LeetCodeHelper() {
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }
