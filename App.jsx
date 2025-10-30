@@ -417,7 +417,7 @@ export default function LeetCodeHelper() {
         )}
 
         {/* Example Walkthrough */}
-        {solutionData?.example && (
+        {solutionData?.solution && (
           <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-3">
@@ -431,27 +431,46 @@ export default function LeetCodeHelper() {
               <div className="bg-slate-900 rounded-lg p-6 border border-orange-200">
                 <pre className="text-sm text-green-400 whitespace-pre-wrap font-mono leading-relaxed">
                   {(() => {
-                    // Extract example from the full solution text
                     const fullText = solutionData?.solution || '';
                     const lines = fullText.split('\n');
                     const exampleLines = [];
-                    let inExample = false;
+                    let foundExample = false;
                     
-                    for (const line of lines) {
-                      if (line.includes('nums = [') || line.includes('target = ') || line.includes('result = ')) {
-                        inExample = true;
+                    // Look for Input/Output pattern or Example section
+                    for (let i = 0; i < lines.length; i++) {
+                      const line = lines[i].trim();
+                      
+                      // Find Input/Output examples
+                      if (line.startsWith('Input:') || line.startsWith('Example')) {
+                        foundExample = true;
                         exampleLines.push(line);
-                      } else if (inExample && line.includes('print(')) {
-                        exampleLines.push(line);
-                      } else if (inExample && line.trim() === '') {
-                        continue;
-                      } else if (inExample && !line.trim().startsWith('nums') && !line.trim().startsWith('target') && !line.trim().startsWith('result') && !line.trim().startsWith('print')) {
+                        
+                        // Get next few lines that are part of the example
+                        for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                          const nextLine = lines[j].trim();
+                          if (nextLine.startsWith('Output:') || nextLine.startsWith('Explanation:') || 
+                              nextLine.includes('->') || nextLine.includes('=>')) {
+                            exampleLines.push(nextLine);
+                          } else if (nextLine && !nextLine.startsWith('def ') && !nextLine.startsWith('class ')) {
+                            break;
+                          }
+                        }
                         break;
                       }
                     }
                     
-                    if (exampleLines.length === 0) {
-                      return 'Input: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: nums[0] + nums[1] = 2 + 7 = 9';
+                    // If no structured example found, create a generic one based on problem type
+                    if (!foundExample || exampleLines.length === 0) {
+                      const problemName = problem.toLowerCase();
+                      if (problemName.includes('two sum')) {
+                        return 'Input: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: nums[0] + nums[1] = 2 + 7 = 9';
+                      } else if (problemName.includes('three sum')) {
+                        return 'Input: nums = [-1,0,1,2,-1,-4]\nOutput: [[-1,-1,2],[-1,0,1]]\nExplanation: The distinct triplets are [-1,0,1] and [-1,-1,2]';
+                      } else if (problemName.includes('add two numbers')) {
+                        return 'Input: l1 = [2,4,3], l2 = [5,6,4]\nOutput: [7,0,8]\nExplanation: 342 + 465 = 807';
+                      } else {
+                        return 'Example walkthrough will be shown here based on the specific problem.';
+                      }
                     }
                     
                     return exampleLines.join('\n');
